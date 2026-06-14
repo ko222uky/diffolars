@@ -1,0 +1,20 @@
+[project]
+name = "datadiff"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Kenneth O'Dell", email = "kenneth.l.odell@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=3.0.3",
+    "polars>=1.41.2",
+    "pyarrow>=24.0.0",
+    "pyodbc>=5.3.0",
+    "sqlalchemy>=2.0.50",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.2,<0.12.0"]
+build-backend = "uv_build"

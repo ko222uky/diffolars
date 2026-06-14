@@ -1,0 +1,40 @@
+# Source: https://docs.astral.sh/uv/guides/integration/gitlab/#using-uv-pip
+image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+stages:
+  - lint
+  - test
+
+# the .uv-cache is a global cache hashed by package contents...
+# we want to persist this cache between CI runs so that uv can rebuild the venv quickly.
+variables:
+  UV_CACHE_DIR: .uv-cache
+
+cache:
+  # unique cache for each branch; same branch can reuse dependencies.
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - .uv-cache/
+
+lint_job:
+  stage: lint
+
+  # basic tools for linting and type checking
+  script:
+    - uv run ruff check # default linting rules
+    - uvx ty check      # default type checking rules
+
+test:
+  stage: test
+  script:
+
+    # dummy main script
+    - uv run main.py
+    - uv run pytest --junitxml=report.xml
+
+  artifacts:
+      when: always
+      paths:
+        - report.xml
+      reports:
+        junit: report.xml
