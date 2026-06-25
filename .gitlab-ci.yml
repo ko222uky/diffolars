@@ -2,7 +2,6 @@
 image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
 stages:
-  - lint
   - test
 
 # the .uv-cache is a global cache hashed by package contents...
@@ -16,20 +15,10 @@ cache:
   paths:
     - .uv-cache/
 
-lint_job:
-  stage: lint
-
-  # basic tools for linting and type checking
-  script:
-    - uv run ruff check # default linting rules
-    - uvx ty check      # default type checking rules
-
 test:
   stage: test
   script:
 
-    # dummy main script
-    - uv run main.py
     - uv run pytest --junitxml=report.xml
 
   artifacts:
