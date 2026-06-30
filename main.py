@@ -1,5 +1,5 @@
-import datadiff.diff as dd
-from datadiff.demo import (
+import yadd.diff as yd
+from yadd.demo import (
     get_random_data, get_mutated_data, get_df_pair
 )
 

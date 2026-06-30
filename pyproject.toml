@@ -1,7 +1,7 @@
 [project]
-name = "datadiff"
+name = "yadd"
 version = "0.1.0"
-description = "Add your description here"
+description = "Yet another data diff"
 readme = "README.md"
 authors = [
     { name = "Kenneth O'Dell", email = "kenneth.l.odell@gmail.com" }
