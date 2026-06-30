@@ -210,3 +210,24 @@ def get_mutated_data(
             ]
 
     return pl.DataFrame(data)
+
+def get_df_pair(
+    n_cols: int,
+    n_rows: int, 
+    *,
+    n_new_rows: int = 0,
+    n_new_cols: int = 0,
+    seed: int | None = None,
+    included_types: set[int, float, str, datetime] = DEFAULT_INCLUDE_TYPES, 
+    coverage: float = 0.1) -> dict[str, pl.DataFrame]:
+    """Prepares a pair of original and mutated `polars.DataFrame`'s."""
+    print(f"Generating initial dataset with {n_rows} rows and {n_cols} columns.")
+    df = get_random_data(n_rows=n_rows, n_cols=n_cols, include_types=included_types, seed=seed)
+    mut_df = get_mutated_data(
+        df, coverage=coverage, n_new_rows = n_new_rows, n_new_cols = n_new_cols,
+        include_types=included_types)
+    print("Generated mutated dataset.")
+    return {
+        'original' : df,
+        'mutated'  : mut_df
+    }
