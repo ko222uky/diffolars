@@ -4,15 +4,6 @@ def deduplicate(orig: pl.DataFrame, mut: pl.DataFrame) -> pl.DataFrame:
     """Given two input tables, identifies exact row-to-row matches based on a checksum."""
     pass
 
-def row_intercept(orig: pl.DataFrame, mut: pl.DataFrame, record_id_col: str) -> list[str]:
-    """Identifies shared rows, according to a specified record ID column."""
-    pass
-
-def row_symmetric_diff(orig: pl.DataFrame, mut: pl.DataFrame, record_id_col: str) -> list[str]:
-    """Identifies sets of rows not shared between the two input dataframes,
-    according to a specified record ID column"""
-    pass
-
 def has_same_schema(orig: pl.DataFrame, mut: pl.DataFrame) -> bool:
     """Return False if two dataframe schemas do not match."""
     pass
@@ -48,6 +39,24 @@ def column_symmetric_diff(
     o = {c.replace(acol_suffix, '') for c in acol}
     m = {c.replace(bcol_suffix, '') for c in bcol}
     # symm diff --> intersection gives set-exclusive members
+    osd = o.symmetric_difference(m).intersection(o)
+    msd = m.symmetric_difference(o).intersection(m)
+    return {
+        'original' : osd,
+        'mutated'  : msd
+    }
+
+def row_intercept(acol_id: list[str], bcol_id: list[str]) -> set[str]:
+    """Identifies shared rows, given a list of primary keys or record IDs"""
+    o = {str(id) for id in acol_id}
+    m = {str(id) for id in bcol_id}
+    i = o.intersection(m) # empty sets should be checked outside.
+    return i
+
+def row_symmetric_diff(acol_id: list[str], bcol_id: list[str]) -> dict[str, set[str]]:
+    """Identifies sets of rows not shared between the two input dataframes's record ID list"""
+    o = {str(id) for id in acol_id}
+    m = {str(id) for id in bcol_id}
     osd = o.symmetric_difference(m).intersection(o)
     msd = m.symmetric_difference(o).intersection(m)
     return {
