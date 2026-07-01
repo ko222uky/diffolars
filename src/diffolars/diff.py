@@ -23,16 +23,34 @@ def parse_schema(orig: pl.DataFrame, mut: pl.DataFrame, suffix: str) -> dict[str
     """
     pass
 
-def column_intercept(orig: pl.DataFrame, mut: pl.DataFrame, suffix: str) -> set[str]:
+def column_intercept(
+    acol: list[str], bcol: list[str], 
+    acol_suffix: str = '', bcol_suffix: str = '',
+    record_id_col: str = 'record_id') -> set[str]:
     """
     Finds and returns the set of shared columns between two input dataframes.
     Equal columns must have the same column name and data type, excluding the suffix.
     """
-    pass
+    o = {c.replace(acol_suffix, '') for c in acol}
+    m = {c.replace(bcol_suffix, '') for c in bcol}
+    i = o.intersection(m)
+    if record_id_col not in i:
+        raise ValueError("Could not find record ID column (primary key).")
+    return i
 
-def column_symmetric_diff(orig: pl.DataFrame, mut: pl.DataFrame, suffix: str) -> dict[str, set[str]]:
+def column_symmetric_diff(
+    acol: list[str], bcol: list[str], 
+    acol_suffix: str = '', bcol_suffix: str = '') -> dict[str, set[str]]:
     """
     Finds and returns the set of different columns between two input dataframes.
     Different columns may differ by name or data type, excluding the suffix.
     """
-    pass
+    o = {c.replace(acol_suffix, '') for c in acol}
+    m = {c.replace(bcol_suffix, '') for c in bcol}
+    # symm diff --> intersection gives set-exclusive members
+    osd = o.symmetric_difference(m).intersection(o)
+    msd = m.symmetric_difference(o).intersection(m)
+    return {
+        'original' : osd,
+        'mutated'  : msd
+    }
