@@ -1,6 +1,6 @@
 [project]
 name = "diffolars"
-version = "0.1.0"
+version = "0.2.0"
 description = "Yet another data diff"
 readme = "README.md"
 authors = [
