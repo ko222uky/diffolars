@@ -1,12 +1,11 @@
-import yadd.diff as yd
-from yadd.demo import (
+import diffolars.diff as dd
+from diffolars.demo import (
     get_random_data, get_mutated_data, get_df_pair
 )
 
 SEED = 42
 
 def main():
-
 
     print("Getting a random original DataFrame...")
     df = get_random_data(10, 10, seed=SEED)

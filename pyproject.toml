@@ -1,11 +1,12 @@
 [project]
-name = "yadd"
+name = "diffolars"
 version = "0.1.0"
 description = "Yet another data diff"
 readme = "README.md"
 authors = [
     { name = "Kenneth O'Dell", email = "kenneth.l.odell@gmail.com" }
 ]
+license = "MIT"
 requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
