@@ -1,18 +1,66 @@
 import polars as pl
+from datetime import datetime
 
-def deduplicate(orig: pl.DataFrame, mut: pl.DataFrame) -> pl.DataFrame:
-    """Given two input tables, identifies exact row-to-row matches based on a checksum."""
-    pass
-
-def has_same_schema(orig: pl.DataFrame, mut: pl.DataFrame) -> bool:
-    """Return False if two dataframe schemas do not match."""
-    pass
-
-def parse_schema(orig: pl.DataFrame, mut: pl.DataFrame, suffix: str) -> dict[str, set[str]]:
+def report_prune(
+    a: pl.DataFrame | pl.LazyFrame, 
+    b: pl.DataFrame | pl.LazyFrame,
+    acol_suffix: str = '',
+    bcol_suffix: str = '',
+    value_for_no_exclusives: str = 'No exclusives'
+    ) -> dict[str, set[str]]:
     """
-    Parses the schema of two dataframes and outputs results in the stdout.
+    
+    Returns a dictionary report on pruning results between two data tables.
+
+    Columns are concatenated, but rows are not 
+    since the number of different rows may be very large.
+    The trimmed rows and columns are returned as a dictionary for reporting.
+    This dictionary thus can be made into an entry in a logging table.
     """
-    pass
+
+    # The symm diff allows us to report the trimmed rows & cols
+    csd = column_symmetric_diff(
+        a, b, acol_suffix=acol_suffix, bcol_suffix=bcol_suffix
+    )
+    rsd = row_symmetric_diff(a, b)
+
+    if len(csd) != 2:
+        raise ValueError("The column symmetric difference dictionary results \
+                         between the inputs has a length > 2. Expected 2.")
+    if len(rsd) != 2:
+        raise ValueError("The row symmetric difference dictionary results \
+                         between the inputs has a length > 2. Expected 2.")
+
+    # process column symm diff
+    pruned_results = {'date_pruned' : datetime.now()}
+
+    for (k, v1), (_, v2) in zip(csd.items(), rsd.items()):
+        # these dicts share the same key
+        pruned_results['cols_only_in_' + k] = ' , '.join(v1) \
+            if ' , '.join(v1) else value_for_no_exclusives
+        pruned_results['num_rows_only_in_' + k] = len(v2)
+
+    return pruned_results
+        
+
+def prune_rows(a: pl.DataFrame | pl.LazyFrame, b: pl.DataFrame | pl.LazyFrame, id_col: str = 'record_id') -> pl.DataFrame:
+    """Returns a DataFrame with the pruned rows."""
+    pruned_a = a.join(b, how="anti", on=id_col).select(
+        pl.lit(datetime.now()).alias("date_pruned"),
+        pl.lit("previous load").alias("source_dataload"),
+        id_col
+    )
+    pruned_b = b.join(a, how="anti", on=id_col).select(
+        pl.lit(datetime.now()).alias("date_pruned"),
+        pl.lit("latest load").alias("source_dataload"),
+        id_col
+    )
+    print(f"Found {len(pruned_a)} rows unique to the current (original) table.")
+    print(f"Found {len(pruned_a)} rows unique to the next (latest) table.")
+    return pl.concat([pruned_a, pruned_b], how="vertical")
+
+    
+
 
 
 def get_cols(input: pl.DataFrame | pl.LazyFrame | list[str]) -> list[str]:
@@ -71,8 +119,8 @@ def column_symmetric_diff(
     osd = o.symmetric_difference(m).intersection(o)
     msd = m.symmetric_difference(o).intersection(m)
     return {
-        'original' : osd,
-        'mutated'  : msd
+        'prev_load' :  osd,
+        'latest_load'  : msd
     }
 
 def row_intercept(a: list[str], b: list[str], id_col: str = "record_id") -> set[str]:
@@ -93,6 +141,6 @@ def row_symmetric_diff(a: list[str], b: list[str], id_col: str = "record_id") ->
     osd = o.symmetric_difference(m).intersection(o)
     msd = m.symmetric_difference(o).intersection(m)
     return {
-        'original' : osd,
-        'mutated'  : msd
+        'prev_load' : osd,
+        'latest_load'  : msd
     }
