@@ -40,8 +40,22 @@ mutate a dataframe on its own.
 
 ## Diffing
 
-`diffolars.diff` will define the comparison API (row/column intersection and
-symmetric difference, schema comparison) and is under active development...
+`diffolars.diff` provides the comparison API for two dataloads (e.g. a
+previous load vs. the latest load), and is under active development.
+
+Inputs to these functions can be a `list`, `polars.DataFrame`, or
+`polars.LazyFrame`.
+
+- `column_intercept` / `column_symmetric_diff` — shared vs. exclusive columns
+  between the two tables
+- `row_intercept` / `row_symmetric_diff` — shared vs. exclusive rows, based on
+  a record ID column
+- `prune_rows` — returns the rows exclusive to each table (i.e. dropped by the
+  join), tagged with which table they came from
+- `report_prune` — summarizes the pruned rows/columns as a single dict entry,
+  suitable for logging
+- `get_core` — joins the two tables down to their shared rows and columns, for
+  doing the field-to-field comparison
 
 Currently only the Windows build is available.
 
