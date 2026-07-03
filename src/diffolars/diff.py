@@ -6,7 +6,7 @@ def get_core(
     a: pl.DataFrame | pl.LazyFrame,
     b: pl.DataFrame | pl.LazyFrame,
     id_col: str = 'record_id',
-    col_sort_key = lambda x: x.split('_')[1]) -> pl.DataFrame | pl.LazyFrame:
+    col_sort_key = lambda x: x.split('_')[1]) -> pl.DataFrame:
     """Returns the core table, given two input data tables.
     
     The core table is what remains after pruning the rows and columns
@@ -26,6 +26,7 @@ def get_core(
         ordered_cols.append(id_col)
         ordered_cols.extend(ci)
 
+        # TODO: Fix this; get core should return a tuple of tables...
 
         return (
             a_df.join(b_df, how="inner", on=id_col).select(
@@ -98,7 +99,7 @@ def pruned_rows(
         id_col
     )
     print(f"Found {len(pruned_a)} rows unique to the current (original) table.")
-    print(f"Found {len(pruned_a)} rows unique to the next (latest) table.")
+    print(f"Found {len(pruned_b)} rows unique to the next (latest) table.")
     return pl.concat([pruned_a, pruned_b], how="vertical")
 
     
