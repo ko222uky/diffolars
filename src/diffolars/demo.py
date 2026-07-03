@@ -9,8 +9,8 @@ import random
 import string
 import uuid
 from datetime import datetime, timedelta
-from diffolars.log import logfile
 import polars as pl
+from typing import Any
 
 # The default include types;
 # the randomized data is guaranteed to include a column 
@@ -40,7 +40,7 @@ _MUTATORS = {
 def get_random_data(
     n_rows: int,
     n_cols: int,
-    include_types: set[type] = DEFAULT_INCLUDE_TYPES,
+    include_types: set[Any] = DEFAULT_INCLUDE_TYPES,
     seed: int | None = None,
 ) -> pl.DataFrame:
     """Generate a random Polars dataframe of test data.
@@ -112,7 +112,7 @@ def get_mutated_data(
     coverage: float = 0.1, # this is the the % of the N x N data matrix that gets mutated.
     n_new_rows: int = 0,
     n_new_cols: int = 0,
-    include_types: set[type] = DEFAULT_INCLUDE_TYPES,
+    include_types: set[Any] = DEFAULT_INCLUDE_TYPES,
     seed: int | None = None,
 ) -> pl.DataFrame:
     """
@@ -219,7 +219,7 @@ def get_df_pair(
     n_new_rows: int = 0,
     n_new_cols: int = 0,
     seed: int | None = None,
-    included_types: set[int, float, str, datetime] = DEFAULT_INCLUDE_TYPES, 
+    included_types: set[Any] = DEFAULT_INCLUDE_TYPES, 
     coverage: float = 0.1) -> dict[str, pl.DataFrame]:
     """Prepares a pair of original and mutated `polars.DataFrame`'s."""
     print(f"Generating initial dataset with {n_rows} rows and {n_cols} columns.")

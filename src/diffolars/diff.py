@@ -1,30 +1,40 @@
 import polars as pl
 from datetime import datetime
+from typing import Any
 
 def get_core(
     a: pl.DataFrame | pl.LazyFrame,
     b: pl.DataFrame | pl.LazyFrame,
     id_col: str = 'record_id',
-    col_sort_key = lambda x: x.split('_')[1]):
+    col_sort_key = lambda x: x.split('_')[1]) -> pl.DataFrame | pl.LazyFrame:
     """Returns the core table, given two input data tables.
     
     The core table is what remains after pruning the rows and columns
     """
-    # Rows pruned via inner join; columns pruned via column intercept
-    # here, we're just preparing an ordered list for our select expression...
-    ci = column_intercept(a, b)
-    ci.remove(id_col)
-    ci = list(ci)
-    ci = sorted(ci, key=col_sort_key)
-    print(ci)
-    ordered_cols = []
-    ordered_cols.append(id_col)
-    ordered_cols.extend(ci)
-    return (
-        a.join(b, how="inner", on=id_col).select(
-            ordered_cols
+    a_df = a if isinstance(a, pl.DataFrame) else a.collect()
+    b_df = b if isinstance(b, pl.DataFrame) else b.collect() 
+
+    try:
+        # Rows pruned via inner join; columns pruned via column intercept
+        # here, we're just preparing an ordered list for our select expression...
+        ci = column_intercept(a, b)
+        ci.remove(id_col)
+        ci = list(ci)
+        ci = sorted(ci, key=col_sort_key)
+        print(ci)
+        ordered_cols = []
+        ordered_cols.append(id_col)
+        ordered_cols.extend(ci)
+
+
+        return (
+            a_df.join(b_df, how="inner", on=id_col).select(
+                ordered_cols
+            )
         )
-    )
+    except Exception as e:
+        print(e)
+        return pl.DataFrame()
 
 def report_prune(
     a: pl.DataFrame | pl.LazyFrame, 
@@ -32,7 +42,7 @@ def report_prune(
     acol_suffix: str = '',
     bcol_suffix: str = '',
     value_for_no_exclusives: str = 'No exclusives'
-    ) -> dict[str, set[str]]:
+    ) -> dict[str, Any]:
     """
     
     Returns a dictionary report on pruning results between two data tables.
@@ -73,6 +83,10 @@ def pruned_rows(
     b: pl.DataFrame | pl.LazyFrame, 
     id_col: str = 'record_id') -> pl.DataFrame:
     """Returns a DataFrame with the pruned rows."""
+    if isinstance(a, pl.LazyFrame):
+        a = a.collect()
+    if isinstance(b, pl.LazyFrame):
+        b = b.collect()
     pruned_a = a.join(b, how="anti", on=id_col).select(
         pl.lit(datetime.now()).alias("date_pruned"),
         pl.lit("previous load").alias("source_dataload"),
@@ -94,13 +108,13 @@ def get_cols(input: pl.DataFrame | pl.LazyFrame | list[str]) -> list[str]:
     if isinstance(input, pl.DataFrame):
         return input.columns
     elif isinstance(input, pl.LazyFrame):
-        return input.collect_schema().columns
+        return input.columns
     elif isinstance(input, list):
         return input
     else:
         return list()
     
-def get_row_values(input: list[str] | pl.DataFrame | pl.LazyFrame, col: str) -> list[str]:
+def get_row_values(input: pl.DataFrame | pl.LazyFrame | list[str], col: str) -> list[str]:
     """Gets row values from a df and col name"""
     if isinstance(input, pl.DataFrame):
         return input.select(col).to_series().to_list()
@@ -130,7 +144,8 @@ def column_intercept(
     return i
 
 def column_symmetric_diff(
-    acol: list[str], bcol: list[str], 
+    acol: list[str] | pl.DataFrame | pl.LazyFrame,
+    bcol: list[str] | pl.DataFrame | pl.LazyFrame, 
     acol_suffix: str = '', bcol_suffix: str = '') -> dict[str, set[str]]:
     """
     Finds and returns the set of different columns between two input dataframes.
@@ -148,7 +163,10 @@ def column_symmetric_diff(
         'latest_load'  : msd
     }
 
-def row_intercept(a: list[str], b: list[str], id_col: str = "record_id") -> set[str]:
+def row_intercept(
+    a: list[str] | pl.DataFrame | pl.LazyFrame,
+    b: list[str] | pl.DataFrame | pl.LazyFrame,
+    id_col: str = "record_id") -> set[str]:
     """Identifies shared rows, given a list of primary keys or record IDs"""
     acol_id = get_row_values(a, id_col)
     bcol_id = get_row_values(b, id_col)
@@ -157,7 +175,10 @@ def row_intercept(a: list[str], b: list[str], id_col: str = "record_id") -> set[
     i = o.intersection(m) # empty sets should be checked outside.
     return i
 
-def row_symmetric_diff(a: list[str], b: list[str], id_col: str = "record_id") -> dict[str, set[str]]:
+def row_symmetric_diff(
+    a: list[str] | pl.DataFrame | pl.LazyFrame,
+    b: list[str] | pl.DataFrame | pl.LazyFrame,
+    id_col: str = "record_id") -> dict[str, set[str]]:
     """Identifies sets of rows not shared between the two input dataframes's record ID list"""
     acol_id = get_row_values(a, id_col)
     bcol_id = get_row_values(b, id_col)
