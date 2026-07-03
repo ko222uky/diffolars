@@ -1,6 +1,31 @@
 import polars as pl
 from datetime import datetime
 
+def get_core(
+    a: pl.DataFrame | pl.LazyFrame,
+    b: pl.DataFrame | pl.LazyFrame,
+    id_col: str = 'record_id',
+    col_sort_key = lambda x: x.split('_')[1]):
+    """Returns the core table, given two input data tables.
+    
+    The core table is what remains after pruning the rows and columns
+    """
+    # Rows pruned via inner join; columns pruned via column intercept
+    # here, we're just preparing an ordered list for our select expression...
+    ci = column_intercept(a, b)
+    ci.remove(id_col)
+    ci = list(ci)
+    ci = sorted(ci, key=col_sort_key)
+    print(ci)
+    ordered_cols = []
+    ordered_cols.append(id_col)
+    ordered_cols.extend(ci)
+    return (
+        a.join(b, how="inner", on=id_col).select(
+            ordered_cols
+        )
+    )
+
 def report_prune(
     a: pl.DataFrame | pl.LazyFrame, 
     b: pl.DataFrame | pl.LazyFrame,
@@ -43,7 +68,10 @@ def report_prune(
     return pruned_results
         
 
-def prune_rows(a: pl.DataFrame | pl.LazyFrame, b: pl.DataFrame | pl.LazyFrame, id_col: str = 'record_id') -> pl.DataFrame:
+def pruned_rows(
+    a: pl.DataFrame | pl.LazyFrame,
+    b: pl.DataFrame | pl.LazyFrame, 
+    id_col: str = 'record_id') -> pl.DataFrame:
     """Returns a DataFrame with the pruned rows."""
     pruned_a = a.join(b, how="anti", on=id_col).select(
         pl.lit(datetime.now()).alias("date_pruned"),
@@ -60,9 +88,6 @@ def prune_rows(a: pl.DataFrame | pl.LazyFrame, b: pl.DataFrame | pl.LazyFrame, i
     return pl.concat([pruned_a, pruned_b], how="vertical")
 
     
-
-
-
 def get_cols(input: pl.DataFrame | pl.LazyFrame | list[str]) -> list[str]:
     """Given a data frame or lazy frame, returns the column list."""
     # To make things easy, handle entire df or lf inputs, too
