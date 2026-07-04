@@ -63,6 +63,33 @@ Inputs to these functions can be a `list`, `polars.DataFrame`, or
 
 Currently only the Windows build is available.
 
+## Command-line interface
+
+`diffolars.cli` exposes `diff_cli`, a Click command that runs the diff
+pipeline (`report_prune`, `pruned_rows`, `bitdiff`) over two parquet dataloads
+and prints the three result tables. There's no console-script entry point
+yet, so invoke it as:
+
+```bash
+python -c "from diffolars.cli import diff_cli; diff_cli()" \
+  --prev-load original.parquet \
+  --latest-load mutated.parquet \
+  --id-col record_id
+```
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--prev-load` | `original.parquet` | Path to the previous/original data load. |
+| `--latest-load` | `mutated.parquet` | Path to the latest/mutated data load. |
+| `--id-col` | `record_id` | Name of the record identifier column. |
+| `--scan` / `--no-scan` | `--scan` | Read with `pl.scan_parquet` (lazy) instead of `pl.read_parquet` (eager). |
+| `--write` / `--no-write` | `--write` | Write the resulting diff tables to parquet. |
+
+When `--write` is set (the default), results are saved under
+`data/<prev-stem>-<latest-stem>/<today's date>/`, as
+`diff_activity_log_record.parquet`, `diff_record_differences.parquet`, and
+`diff_bitarray_results.parquet`.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

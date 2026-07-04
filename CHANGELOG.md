@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0
+- Added `diffolars.cli`, a Click-based CLI (`diff_cli`) that reads a previous
+  and latest parquet dataload, runs `report_prune`, `pruned_rows`, and
+  `bitdiff`, prints the three result tables, and (by default) writes them to
+  `data/<prev>-<latest>/<date>/*.parquet`
+- Added `click` as a dependency
+- Added a guard in `compute_bitarray` raising `ValueError` when a row has more
+  than 32 column pairs, since the diff bitarray is a 64-bit `UInt64`
+- Truncated `date_pruned` timestamps in `report_prune`/`pruned_rows` to minute
+  precision
+- Swapped `get_df_pair`'s parameter order to `n_rows, n_cols` for consistency
+  with the rest of the API
+
 ## 0.4.0
 - Added `bitdiff`, which joins the two core tables and computes a per-row
   `diff_bitarray` (`pl.UInt64`) capturing which columns match between the
