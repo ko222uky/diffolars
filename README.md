@@ -79,7 +79,7 @@ and prints the three result tables. It's registered as the `diffolars`
 console script.
 
 From within this project:
-
+ 
 ```bash
 uv run diffolars \
   --prev-load original.parquet \
