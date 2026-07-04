@@ -23,6 +23,9 @@ dependencies = [
     "sqlalchemy>=2.0.50",
 ]
 
+[project.scripts]
+diffolars = "diffolars.cli:diff_cli"
+
 [dependency-groups]
 dev = [
     "pdoc>=15.0.0",

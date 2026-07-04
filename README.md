@@ -73,11 +73,22 @@ Currently only the Windows build is available.
 
 `diffolars.cli` exposes `diff_cli`, a Click command that runs the diff
 pipeline (`report_prune`, `pruned_rows`, `bitdiff`) over two parquet dataloads
-and prints the three result tables. There's no console-script entry point
-yet, so invoke it as:
+and prints the three result tables. It's registered as the `diffolars`
+console script.
+
+From within this project:
 
 ```bash
-python -c "from diffolars.cli import diff_cli; diff_cli()" \
+uv run diffolars \
+  --prev-load original.parquet \
+  --latest-load mutated.parquet \
+  --id-col record_id
+```
+
+Or by using `uvx`:
+
+```bash
+uvx diffolars \
   --prev-load original.parquet \
   --latest-load mutated.parquet \
   --id-col record_id

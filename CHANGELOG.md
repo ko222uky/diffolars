@@ -11,6 +11,10 @@
 - Expanded `diff_cli` with `--bitarray-summary/--no-bitarray-summary` and
   `--top-n` options, writing `bitarray_summary.parquet` and
   `bitarray_summary_upsetplot.png` alongside the existing diff outputs
+- Added a `diffolars` console-script entry point for `diff_cli`, replacing
+  the `python -c "from diffolars.cli import diff_cli; diff_cli()"` workaround
+  with `uv run diffolars`
+- Added a `pdoc`-generated API reference under `docs/api`
 - First 1.0 release: the core diff pipeline (prune, core, bitdiff, summary,
   upset plot) and CLI are considered stable
 

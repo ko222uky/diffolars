@@ -32,7 +32,44 @@ from pathlib import Path
 def diff_cli(
     prev_load, latest_load, id_col, scan, write, bitarray_summary,
     top_n):
-    """Diff two parquet data loads and report/write the differences."""
+    """Diff two parquet data loads and report/write the differences.
+    
+    Example
+    =======
+
+    ```
+    from diffolars.cli import diff_cli
+    from diffolars.demo import get_df_pair
+
+    # GENERATE TEST DATA PAIR WITH 100 ROWS and 32 COLUMNS
+
+    dfs = get_df_pair(100, 32, n_new_cols=5, n_new_rows=5, coverage=0.10)
+    o = dfs['original']
+    m = dfs['mutated']
+
+    # WRITE TEST DATA TO PARQUET
+
+    o.write_parquet('o.parquet')
+    m.write_parquet('m.parquet')
+
+
+    # CALL CLI TOOL TARGETING THE LOCAL DATA PAIR
+    diff_cli(
+        ['--scan', 
+        '--write',
+        '--prev-load', 'o.parquet', 
+        '--latest-load', 'm.parquet', 
+        '--id-col', 'record_id',
+        '--top-n', 10
+        ],
+        standalone_mode=False,
+    )
+
+    ```
+    
+    
+    
+    """
     if scan:
         o = pl.scan_parquet(prev_load)
         m = pl.scan_parquet(latest_load)
