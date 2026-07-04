@@ -219,3 +219,6 @@ def diff_cli(
 
         except Exception as e:
             click.echo(e)
+
+
+# TODO: Add CLI and uvx tooling for generating test data.

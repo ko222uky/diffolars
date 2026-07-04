@@ -6,6 +6,8 @@ exercise that comparison.
 
 Ideally used to compare dataloads in the day-to-day of a database analyst.
 
+**GitHub**: https://github.com/ko222uky/diffolars
+
 ## Installation
 
 ```bash
@@ -114,8 +116,10 @@ directory additionally gets `bitarray_summary.parquet` and
 ## API reference
 
 Static API docs are generated with [pdoc](https://pdoc.dev) from the
-package's docstrings, and live under [docs/api](docs/api) (open
-`docs/api/index.html`). Regenerate them after docstring changes with:
+package's docstrings, and are hosted at
+[ko222uky.github.io/diffolars](https://ko222uky.github.io/diffolars/)
+(source lives under [docs/api](docs/api)). Regenerate them after docstring
+changes with:
 
 ```bash
 uv run --group dev pdoc diffolars -o docs/api
