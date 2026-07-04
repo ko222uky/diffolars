@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.0
+- Added `bitdiff_summary`, which reads a computed `diff_bitarray` column and
+  reports per-column modified/not-modified counts across all diffed rows
+- Added `bitarray_upset_plot`/`bitdiff_plot`, a hand-rolled matplotlib upset
+  plot showing which columns tend to be modified together, with a `top_n`
+  option to limit the plot to the most-frequently-modified categories and a
+  left-hand totals histogram of single-category modification counts
+- Added `matplotlib` as a dependency
+- Expanded `diff_cli` with `--bitarray-summary/--no-bitarray-summary` and
+  `--top-n` options, writing `bitarray_summary.parquet` and
+  `bitarray_summary_upsetplot.png` alongside the existing diff outputs
+- First 1.0 release: the core diff pipeline (prune, core, bitdiff, summary,
+  upset plot) and CLI are considered stable
+
 ## 0.5.0
 - Added `diffolars.cli`, a Click-based CLI (`diff_cli`) that reads a previous
   and latest parquet dataload, runs `report_prune`, `pruned_rows`, and

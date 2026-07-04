@@ -60,6 +60,12 @@ Inputs to these functions can be a `list`, `polars.DataFrame`, or
 - `bitdiff` — joins the two core tables and computes a per-row `diff_bitarray`
   (`pl.UInt64`), with each bit flagging whether a given column matched
   between the previous and latest load
+- `bitdiff_summary` — reads back a `bitdiff` result and reports, per core
+  column, how many rows were modified vs. not modified
+- `bitarray_upset_plot` / `bitdiff_plot` — builds an upset plot (matplotlib)
+  showing which columns tend to be modified together, with an optional
+  `top_n` to limit the plot to the most-frequently-modified columns and a
+  left-hand histogram of each column's total modification count
 
 Currently only the Windows build is available.
 
@@ -84,11 +90,15 @@ python -c "from diffolars.cli import diff_cli; diff_cli()" \
 | `--id-col` | `record_id` | Name of the record identifier column. |
 | `--scan` / `--no-scan` | `--scan` | Read with `pl.scan_parquet` (lazy) instead of `pl.read_parquet` (eager). |
 | `--write` / `--no-write` | `--write` | Write the resulting diff tables to parquet. |
+| `--bitarray-summary` / `--no-bitarray-summary` | `--bitarray-summary` | Produce a per-column modified/not-modified summary and upset plot after the bitdiff is computed. |
+| `--top-n` | `20` | Limit the upset plot to the top N most-frequently-modified columns. |
 
 When `--write` is set (the default), results are saved under
 `data/<prev-stem>-<latest-stem>/<today's date>/`, as
 `diff_activity_log_record.parquet`, `diff_record_differences.parquet`, and
-`diff_bitarray_results.parquet`.
+`diff_bitarray_results.parquet`. If `--bitarray-summary` is also set, this
+directory additionally gets `bitarray_summary.parquet` and
+`bitarray_summary_upsetplot.png`.
 
 ## License
 
