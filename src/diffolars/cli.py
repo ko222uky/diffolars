@@ -1,3 +1,6 @@
+"""
+Module containin main CLI tooling.
+"""
 import click
 import polars as pl
 import os

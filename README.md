@@ -100,6 +100,16 @@ When `--write` is set (the default), results are saved under
 directory additionally gets `bitarray_summary.parquet` and
 `bitarray_summary_upsetplot.png`.
 
+## API reference
+
+Static API docs are generated with [pdoc](https://pdoc.dev) from the
+package's docstrings, and live under [docs/api](docs/api) (open
+`docs/api/index.html`). Regenerate them after docstring changes with:
+
+```bash
+uv run --group dev pdoc diffolars -o docs/api
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
