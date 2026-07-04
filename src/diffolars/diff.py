@@ -60,12 +60,18 @@ def row2num_bits(row: dict, id_col = 'record_id'):
     return len(get_row_list(row, id_col)) // 2
 
 def compute_bitarray(row: dict, id_col = 'record_id') -> int:
-    """Computes the column diff bitarray in little-endian order."""
+    """Computes the column 64-bit diff bitarray in little-endian order."""
     
     # Main bit array loop. We know that row_list MUST be even.
     row_list = get_row_list(row, id_col)
     bitarray = 0
     offset = len(row_list) // 2
+
+    if offset > 32:
+        raise ValueError(f"The row cannot have more than 32 column pairs. \
+                        Computed offset is {offset}. \
+                        Expected a value <= 32.")
+
     for i in range(len(row_list)):
         if i+offset >= len(row_list):
             break
@@ -110,7 +116,7 @@ def report_prune(
                          between the inputs has a length > 2. Expected 2.")
 
     # process column symm diff
-    pruned_results = {'date_pruned' : datetime.now()}
+    pruned_results = {'date_pruned' : datetime.now().replace(second=0, microsecond=0)}
 
     for (k, v1), (_, v2) in zip(csd.items(), rsd.items()):
         # these dicts share the same key
@@ -130,12 +136,12 @@ def pruned_rows(
     if isinstance(b, pl.LazyFrame):
         b = b.collect()
     pruned_a = a.join(b, how="anti", on=id_col).select(
-        pl.lit(datetime.now()).alias("date_pruned"),
+        pl.lit(datetime.now().replace(second=0, microsecond=0)).alias("date_pruned"),
         pl.lit("previous load").alias("source_dataload"),
         id_col
     )
     pruned_b = b.join(a, how="anti", on=id_col).select(
-        pl.lit(datetime.now()).alias("date_pruned"),
+        pl.lit(datetime.now().replace(second=0, microsecond=0)).alias("date_pruned"),
         pl.lit("latest load").alias("source_dataload"),
         id_col
     )

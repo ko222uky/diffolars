@@ -213,8 +213,8 @@ def get_mutated_data(
 
 
 def get_df_pair(
-    n_cols: int,
-    n_rows: int, 
+    n_rows: int,
+    n_cols: int, 
     *,
     n_new_rows: int = 0,
     n_new_cols: int = 0,
