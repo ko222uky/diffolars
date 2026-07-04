@@ -1,7 +1,7 @@
 [project]
 name = "diffolars"
-version = "0.5.0"
-description = "Yet another data diff"
+version = "1.0.0"
+description = "Yet another data diff tool built using Polars. Simple CLI tool for making compact bitarray representations for storing table mutations between dataloads."
 readme = "README.md"
 authors = [
     { name = "Kenneth O'Dell", email = "kenneth.l.odell@gmail.com" }
@@ -13,6 +13,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "ipykernel>=7.3.0",
     "jupyter>=1.1.1",
+    "matplotlib>=3.10.0",
     "pandas>=3.0.3",
     "polars>=1.41.2",
     "pyarrow>=24.0.0",

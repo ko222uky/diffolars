@@ -15,5 +15,5 @@ deliverables/
 # generated data
 *.parquet
 *.csv
-
+data/
 
