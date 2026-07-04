@@ -3,17 +3,44 @@ from datetime import datetime
 from typing import Any
 import numpy as np
 
+########################################################
+#                   BITARRAY HELPER FUNCTIONS
+########################################################
 
-def compute_bitarray(row: dict, id_col = 'record_id') -> int:
-    """Computes the column diff bitarray in little-endian order."""
-    
+def count_unpadded_zero_bits(bitarray: int) -> int:
+    """Counts the zeros in a bit array."""
+    # bitwise negation; shifting 1 << num_bits gives,
+    # for num_bits = 4, the number 16. Subtract 1, and you
+    # get 15, which is a one's mask of 4 bits = 0b1111.
+    if bitarray == 0:
+        return 1
+    return brian_kernighan(bitwise_not(bitarray))
 
+def bitwise_not(bitarray: int) -> int:
+    """Inverts bits of a bitarray"""
+    return ~ bitarray & (1 << int.bit_length(int(bitarray))) - 1
+
+def count_zero_bits(bitarray: int, num_bits: int) -> int:
+    """Uses knowledge about the number of bits needed
+    for row comparisons to give the number of zeros."""
+    return num_bits - brian_kernighan(bitarray)
+
+def brian_kernighan(bitarray: int) -> int:
+    """Well-known algorithm for computing number of flipped bits."""
+    count = 0
+    while bitarray:
+        bitarray &= (bitarray -1)
+        count += 1
+    return count
+
+def get_row_list(row: dict, id_col = 'record_id') -> list:
+    """Prepares the row list for bit array computations"""
     # prepare lists for indexing. 
     # row_list has the non-ID column values
-    row_list = [v for k, v in row.values() if id_col not in k]
-
+    row_list = [v for k, v in row.items() if id_col not in k]
+    # print(row_list) # DEBUG
     if len(row_list) % 2 != 0:
-        raise ValueError(f"The number of non-ID columns must be a even \
+        raise ValueError("The number of non-ID columns must be a even \
                         so that the binary operations are correct.")
 
     # we use the id list to check if the input is correct
@@ -23,74 +50,35 @@ def compute_bitarray(row: dict, id_col = 'record_id') -> int:
         raise ValueError(f"Only two columns should have {id_col} in its name.")
     
     if id_list[0] != id_list[1]:
-        raise ValueError(f"The two ID columns in the row dict do not match. \
+        raise ValueError("The two ID columns in the row dict do not match. \
                         Primary keys must match. Try presorting inputs or \
                         pruning unshared rows prior to computing bitarrays.")
+    return row_list
+
+def row2num_bits(row: dict, id_col = 'record_id'):
+    """The number of bits needed for a given row."""
+    return len(get_row_list(row, id_col)) // 2
+
+def compute_bitarray(row: dict, id_col = 'record_id') -> int:
+    """Computes the column diff bitarray in little-endian order."""
     
     # Main bit array loop. We know that row_list MUST be even.
+    row_list = get_row_list(row, id_col)
     bitarray = 0
-    offset = len(row_list) / 2
-    for i in range(len(row_list) / 2):
-        # the idea is to mask our zero-initialized integer,
-        # where the mask is the result of our boolean comparison, 
-        # shifted over by i
-        bitarray |= np.bitwise_left_shift((row_list[i] == row_list[i+offset]), i)
+    offset = len(row_list) // 2
+    for i in range(len(row_list)):
+        if i+offset >= len(row_list):
+            break
+        bitarray |= np.bitwise_left_shift(
+            (row_list[i] == row_list[i+offset]), i
+        )
     return bitarray
 
+########################################################
+#            DATAFRAME HELPER FUNCTIONS
+########################################################
 
-def bitdiff(
-    a: pl.DataFrame | pl.LazyFrame,
-    b: pl.DataFrame | pl.LazyFrame,
-    id_col: str = 'record_id') -> pl.DataFrame:
-    """
-    Given two core tables, computes a bit array that captures the differences.
-    The start position maps column index 1 to the least significant bit (LSB) position.
-    Column index 0 is expected to be the primary key or ID column.
-    The bit array is an unsigned 64-bit integer (`pl.UInt64'), since
-    `pl.UInt128` is currently unstable. 
-    """
-    pass
-    
-
-
-
-def get_core(
-    a: pl.DataFrame | pl.LazyFrame,
-    b: pl.DataFrame | pl.LazyFrame,
-    id_col: str = 'record_id',
-    col_sort_key = lambda x: x.split('_')[1]) -> tuple[pl.DataFrame]:
-    """Returns the core table, given two input data tables.
-    
-    The core table is what remains after pruning the rows and columns
-    """
-    a_df = a if isinstance(a, pl.DataFrame) else a.collect()
-    b_df = b if isinstance(b, pl.DataFrame) else b.collect() 
-
-    try:
-        # columns pruned via column intercept
-        # here, we're just preparing an ordered list for our select expression...
-        ci = column_intercept(a, b)
-        ci.remove(id_col)
-        ci = list(ci)
-        ci = sorted(ci, key=col_sort_key)
-        # print(ci) DEBUG PRINT
-        ordered_cols = []
-        ordered_cols.append(id_col)
-        ordered_cols.extend(ci)
-
-        # rows pruned via row intercept
-        ri = row_intercept(a_df, b_df, id_col=id_col)
-
-        # filter & select
-        a_df = a_df.filter(pl.col(id_col).is_in(ri)).select(ordered_cols)
-        b_df = b_df.filter(pl.col(id_col).is_in(ri)).select(ordered_cols)
-
-        return a_df, b_df
-
-    except Exception as e:
-        print(e)
-        return pl.DataFrame()
-
+# Pruning functions / isolating differences before main bitarray calculations
 def report_prune(
     a: pl.DataFrame | pl.LazyFrame, 
     b: pl.DataFrame | pl.LazyFrame,
@@ -132,7 +120,6 @@ def report_prune(
 
     return pruned_results
         
-
 def pruned_rows(
     a: pl.DataFrame | pl.LazyFrame,
     b: pl.DataFrame | pl.LazyFrame, 
@@ -156,7 +143,57 @@ def pruned_rows(
     print(f"Found {len(pruned_b)} rows unique to the next (latest) table.")
     return pl.concat([pruned_a, pruned_b], how="vertical")
 
+def get_core(
+    a: pl.DataFrame | pl.LazyFrame,
+    b: pl.DataFrame | pl.LazyFrame,
+    id_col: str = 'record_id',
+    col_sort_key = lambda x: x.split('_')[1]) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """Returns the core table, given two input data tables.
     
+    The core table is what remains after pruning the rows and columns
+    """
+    a_df = a if isinstance(a, pl.DataFrame) else a.collect()
+    b_df = b if isinstance(b, pl.DataFrame) else b.collect() 
+
+    try:
+        # columns pruned via column intercept
+        # here, we're just preparing an ordered list for our select expression...
+        ci = column_intercept(a, b)
+        ci.remove(id_col)
+        ci = list(ci)
+        ci = sorted(ci, key=col_sort_key)
+        # print(ci) DEBUG PRINT
+        ordered_cols = []
+        ordered_cols.append(id_col)
+        ordered_cols.extend(ci)
+
+        # rows pruned via row intercept
+        ri = row_intercept(a_df, b_df, id_col=id_col)
+
+        # filter & select
+        a_df = (
+            a_df
+            .filter(pl.col(id_col)
+            .is_in(ri))
+            .select(ordered_cols)
+            .select(pl.all().name.suffix('_A'))
+        )
+        b_df = (
+            b_df
+            .filter(pl.col(id_col)
+            .is_in(ri))
+            .select(ordered_cols)
+            .select(pl.all().name.suffix('_B'))
+        )
+
+        return a_df, b_df
+
+    except Exception as e:
+        print(e)
+        return pl.DataFrame(), pl.DataFrame()
+
+# Main Column / Row Set Operation Functions
+
 def get_cols(input: pl.DataFrame | pl.LazyFrame | list[str]) -> list[str]:
     """Given a data frame or lazy frame, returns the column list."""
     # To make things easy, handle entire df or lf inputs, too
@@ -245,3 +282,43 @@ def row_symmetric_diff(
         'prev_load' : osd,
         'latest_load'  : msd
     }
+
+########################################################
+#                   BITARRAY DIFFING FUNCTIONS
+########################################################
+
+def bitdiff(
+    a: pl.DataFrame | pl.LazyFrame,
+    b: pl.DataFrame | pl.LazyFrame,
+    id_col: str = 'record_id',
+    suffix_a: str = '_A',
+    suffix_b: str = '_B',
+    bitarray_col_name: str = 'diff_bitarray') -> pl.DataFrame:
+    """
+    Given two tables, computes a bit array that captures the differences,
+    using the core tables.
+    The start position maps column index 1 to the least significant bit (LSB) position.
+    Column index 0 is expected to be the primary key or ID column.
+    The bit array is an unsigned 64-bit integer (`pl.UInt64'), since
+    `pl.UInt128` is currently unstable. 
+    """
+    ac, bc = get_core(a, b)
+    ajb = ac.join(bc, 
+        how="inner",
+        left_on=id_col + suffix_a,
+        right_on=id_col + suffix_b,
+        coalesce=False
+    )
+
+    ajb = ajb.with_columns(
+        pl.struct(pl.all())
+        .map_elements(compute_bitarray, return_dtype=pl.UInt64)
+        .alias("diff_bitarray")
+    ).select(pl.col(id_col + suffix_a).alias(id_col), bitarray_col_name)
+    return ajb
+
+
+
+# import polars as pl
+
+# ojm
