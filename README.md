@@ -54,8 +54,12 @@ Inputs to these functions can be a `list`, `polars.DataFrame`, or
   join), tagged with which table they came from
 - `report_prune` — summarizes the pruned rows/columns as a single dict entry,
   suitable for logging
-- `get_core` — joins the two tables down to their shared rows and columns, for
-  doing the field-to-field comparison
+- `get_core` — prunes each table down to their shared rows and columns, and
+  returns them as a pair of `_A`/`_B`-suffixed DataFrames ready for a
+  field-to-field comparison
+- `bitdiff` — joins the two core tables and computes a per-row `diff_bitarray`
+  (`pl.UInt64`), with each bit flagging whether a given column matched
+  between the previous and latest load
 
 Currently only the Windows build is available.
 

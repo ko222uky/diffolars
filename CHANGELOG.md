@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0
+- Added `bitdiff`, which joins the two core tables and computes a per-row
+  `diff_bitarray` (`pl.UInt64`) capturing which columns match between the
+  previous and latest load
+- Added bitarray helper functions (`compute_bitarray`, `brian_kernighan`,
+  `count_zero_bits`, `count_unpadded_zero_bits`, `bitwise_not`,
+  `get_row_list`, `row2num_bits`) supporting the bitarray diff calculation
+- Changed `get_core` to also prune rows (via `row_intercept`, not just
+  columns) and return a tuple of `_A`/`_B`-suffixed DataFrames instead of a
+  single joined DataFrame
+- Fixed `pruned_rows` logging output, which reported the "original" table's
+  row count twice instead of reporting the "latest" table's count
+
 ## 0.3.1
 - Fixed `get_core` to normalize `DataFrame`/`LazyFrame` inputs before joining, resolving type-checker errors from the previous mixed-type handling
 - Loosened `column_symmetric_diff`, `row_intercept`, and `row_symmetric_diff` to accept `DataFrame`/`LazyFrame` inputs, matching the other set-based functions
