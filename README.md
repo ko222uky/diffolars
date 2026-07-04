@@ -118,11 +118,11 @@ directory additionally gets `bitarray_summary.parquet` and
 Static API docs are generated with [pdoc](https://pdoc.dev) from the
 package's docstrings, and are hosted at
 [ko222uky.github.io/diffolars](https://ko222uky.github.io/diffolars/)
-(source lives under [docs/api](docs/api)). Regenerate them after docstring
+(source lives under [docs](docs)). Regenerate them after docstring
 changes with:
 
 ```bash
-uv run --group dev pdoc diffolars -o docs/api
+uv run --group dev pdoc diffolars -o docs
 ```
 
 ## License
