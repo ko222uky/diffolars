@@ -226,7 +226,7 @@ def get_df_pair(
     df = get_random_data(n_rows=n_rows, n_cols=n_cols, include_types=included_types, seed=seed)
     mut_df = get_mutated_data(
         df, coverage=coverage, n_new_rows = n_new_rows, n_new_cols = n_new_cols,
-        include_types=included_types)
+        include_types=included_types, seed=seed)
     print("Generated mutated dataset.")
     return {
         'original' : df,
