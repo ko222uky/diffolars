@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.0.3
+- Fixed `get_df_pair` not forwarding `seed` to `get_mutated_data`, so the
+  mutated frame is now reproducible alongside the original when a seed is given
+- Added `test_demo.py`, unit tests for `get_df_pair` covering return shape,
+  reproducibility with a fixed seed, and variation across different seeds
+- Removed the `test_suite.py` placeholder/template tests now that real tests
+  exist
+- Added `build` and `publish` stages to `.gitlab-ci.yml`, restricted to
+  `main`: `uv build` produces the package, and `uv publish` runs only if the
+  `pyproject.toml` version isn't already published on PyPI (checked via new
+  `check_pypi_published.py` helper script)
+
+## 1.0.2
+- Flattened the generated API reference to live under `docs/` directly
+  (previously nested under `docs/api/`)
+- Switched GitHub Pages docs deployment from a GitHub Actions workflow to
+  branch deployment, removing `.github/workflows/pages.yml`
+
+## 1.0.1
+- Added a usage example to `diff_cli`'s docstring, demonstrating
+  `get_df_pair` + `diff_cli` end-to-end
+- Published the pdoc-generated API reference to GitHub Pages via a GitHub
+  Actions workflow, and linked it from the README/PyPI project page
+
 ## 1.0.0
 - Added `bitdiff_summary`, which reads a computed `diff_bitarray` column and
   reports per-column modified/not-modified counts across all diffed rows
