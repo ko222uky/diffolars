@@ -4,6 +4,8 @@ image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 stages:
   - lint
   - test
+  - build
+  - publish
 
 # the .uv-cache is a global cache hashed by package contents...
 # we want to persist this cache between CI runs so that uv can rebuild the venv quickly.
@@ -27,9 +29,6 @@ lint_job:
 test:
   stage: test
   script:
-
-    # dummy main script
-    - uv run main.py
     - uv run pytest --junitxml=report.xml
 
   artifacts:
@@ -38,3 +37,38 @@ test:
         - report.xml
       reports:
         junit: report.xml
+
+build_job:
+  stage: build
+
+  # only build releases off of main; feature branches/MRs stop after test.
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+  script:
+    - uv build
+
+  artifacts:
+    paths:
+      - dist/
+
+publish_job:
+  stage: publish
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+  # requires a UV_PUBLISH_TOKEN CI/CD variable (masked + protected) holding
+  # a PyPI API token; see https://docs.astral.sh/uv/guides/package/#publishing-your-package
+  script:
+    - VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+    - echo "pyproject.toml version is $VERSION"
+
+    # only publish if this version isn't already on PyPI, so that pipelines
+    # without a version bump build (for validation) but don't attempt to republish.
+    - |
+      if uv run --no-project check_pypi_published.py diffolars "$VERSION"; then
+        echo "diffolars $VERSION is already published on PyPI, skipping publish."
+      else
+        uv publish
+      fi
