@@ -1,6 +1,6 @@
 [project]
 name = "diffolars"
-version = "1.0.2"
+version = "1.0.3"
 description = "A small Polars-based toolkit for comparing two versions of a dataframe and generating randomized test data to exercise that comparison."
 readme = "README.md"
 authors = [
