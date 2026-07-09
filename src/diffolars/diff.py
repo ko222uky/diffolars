@@ -157,11 +157,15 @@ def pruned_rows(
         a = a.collect()
     if isinstance(b, pl.LazyFrame):
         b = b.collect()
+
+    # these are  rows in A that are not in B
     pruned_a = a.join(b, how="anti", on=id_col).select(
         pl.lit(datetime.now().replace(second=0, microsecond=0)).alias("date_pruned"),
         pl.lit("previous load").alias("source_dataload"),
         id_col
     )
+
+    # rows in B that are not in A
     pruned_b = b.join(a, how="anti", on=id_col).select(
         pl.lit(datetime.now().replace(second=0, microsecond=0)).alias("date_pruned"),
         pl.lit("latest load").alias("source_dataload"),
