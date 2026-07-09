@@ -20,6 +20,19 @@ import diffolars.cli as cli_module
 from diffolars.cli import diff_cli
 
 
+def _stub_report_prune(a, b, id_col="record_id"):
+    """Stand-in for `report_prune` used to bypass its bug in other tests.
+
+    Accepts `id_col` with a default so this stub keeps working regardless of
+    whether `cli.py` calls `report_prune(o, m)` (bug present) or
+    `report_prune(o, m, id_col=id_col)` (bug fixed) -- otherwise, fixing the
+    real `report_prune`/`diff_cli` call signature would break these tests
+    with an unrelated `TypeError` instead of letting them test what they're
+    meant to test.
+    """
+    return {"date_pruned": datetime.now()}
+
+
 def _write_pair(tmp_path, id_col):
     """Writes a minimal original/mutated parquet pair using a custom id column name."""
     # The following is an alternative test data pair in case the generated 
@@ -69,19 +82,14 @@ def test_diff_cli_succeeds_with_default_id_col(tmp_path):
 def test_diff_cli_succeeds_with_non_default_id_col(tmp_path):
     """diff_cli should run without error when given a custom --id-col.
 
-    EXPECTED TO FAIL with `polars.exceptions.ColumnNotFoundError: unable to
-    find column "record_id"` since this bug was found during a real-world work scenario.
-
-    Root cause: `diffolars.diff.report_prune` (called at cli.py's
-    `report_prune(o, m)` line, before pruned_rows/bitdiff even run) has no
-    `id_col` parameter at all;
-     
-    rather, it hardcodes 'record_id' via
-    `row_symmetric_diff(a, b)`. 
-    
-    Needs fixing: give `report_prune` an
-    `id_col` parameter (forwarded to `row_symmetric_diff`), and have
-    `diff_cli` pass its `id_col` option through to `report_prune`.
+    This is the top-level, no-mocking version of the bug: it exercises the
+    real pipeline end to end, so it will keep failing at whichever layer is
+    still broken. As of this writing that's `get_core` (diff.py) not
+    forwarding `id_col` on to `column_intercept`'s `record_id_col`
+    parameter, so it EXPECTED TO FAIL with
+    `polars.exceptions.ColumnNotFoundError: unable to find column "uid_A"`.
+    See `test_diff_cli_bitdiff_respects_id_col` for the isolated repro of
+    that specific bug.
     """
     prev_path, latest_path = _write_pair(tmp_path, "uid")
 
@@ -106,12 +114,16 @@ def test_diff_cli_bitdiff_respects_id_col(tmp_path, monkeypatch):
     `bitdiff_df = bitdiff(o, m, id_col=id_col)` in cli.py and isolate the
     next bug...
 
-    EXPECTED TO FAIL with `polars.exceptions.ColumnNotFoundError`
+    EXPECTED TO FAIL with `polars.exceptions.ColumnNotFoundError: unable to
+    find column "uid_A"`.
 
-    Root cause: `bitdiff` accepts an `id_col` argument, but its body calls
-    `get_core(a, b)` without forwarding it, so `get_core` falls back to its
-    own 'record_id' default and fails. Needs fixing: `diffolars.diff.bitdiff`
-    must forward its `id_col` argument to `get_core(a, b, id_col=id_col)`.
+    Root cause: `bitdiff` forwards its `id_col` argument to
+    `get_core(a, b, id_col=id_col)`, but `get_core` itself (diff.py) then
+    calls `column_intercept(a, b)` without forwarding `id_col` on to
+    `column_intercept`'s `record_id_col` parameter, so `column_intercept`
+    falls back to its own 'record_id' default and fails. Needs fixing:
+    `get_core` must forward `id_col` as `column_intercept(a, b,
+    record_id_col=id_col)`.
 
     Reference
     ==========
@@ -119,7 +131,7 @@ def test_diff_cli_bitdiff_respects_id_col(tmp_path, monkeypatch):
     https://docs.pytest.org/en/6.2.x/monkeypatch.html
 
     """
-    monkeypatch.setattr(cli_module, "report_prune", lambda a, b: {"date_pruned": datetime.now()})
+    monkeypatch.setattr(cli_module, "report_prune", _stub_report_prune)
     prev_path, latest_path = _write_pair(tmp_path, "uid")
 
     diff_cli(
@@ -158,7 +170,7 @@ def test_diff_cli_bitdiff_summary_respects_id_col(tmp_path, monkeypatch, capsys)
     # monkey patches are just a means setting any dependencies in the code
     # with a dummy temporary replacement, so we can test the actual code unit
     # that we want to test, apart from shifting dependencies or states (think of timestamps, network calls, etc)
-    monkeypatch.setattr(cli_module, "report_prune", lambda a, b: {"date_pruned": datetime.now()})
+    monkeypatch.setattr(cli_module, "report_prune", _stub_report_prune)
 
     def fake_bitdiff(o, m, id_col="record_id", **kwargs):
         return pl.DataFrame({

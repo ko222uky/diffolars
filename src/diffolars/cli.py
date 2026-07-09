@@ -80,7 +80,7 @@ def diff_cli(
     ###########################
     # Generate the report log
     ###########################
-    report_prune_dict = report_prune(o, m)
+    report_prune_dict = report_prune(o, m, id_col = id_col)
     report_date = report_prune_dict['date_pruned']
     report_prune_dict |= {
         'current_load_table': prev_load,

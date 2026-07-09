@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from pathlib import Path
+from functools import partial
 ########################################################
 #                   BITARRAY HELPER FUNCTIONS
 ########################################################
@@ -110,6 +111,7 @@ def count_bitarrays(bitarrays: Iterable[int], pos: int) -> int:
 def report_prune(
     a: pl.DataFrame | pl.LazyFrame, 
     b: pl.DataFrame | pl.LazyFrame,
+    id_col: str = 'record_id',
     acol_suffix: str = '',
     bcol_suffix: str = '',
     value_for_no_exclusives: str = 'No exclusives'
@@ -128,7 +130,7 @@ def report_prune(
     csd = column_symmetric_diff(
         a, b, acol_suffix=acol_suffix, bcol_suffix=bcol_suffix
     )
-    rsd = row_symmetric_diff(a, b)
+    rsd = row_symmetric_diff(a, b, id_col = id_col)
 
     if len(csd) != 2:
         raise ValueError("The column symmetric difference dictionary results \
@@ -348,7 +350,7 @@ def bitdiff(
     The bit array is an unsigned 64-bit integer (`pl.UInt64'), since
     `pl.UInt128` is currently unstable. 
     """
-    ac, bc = get_core(a, b)
+    ac, bc = get_core(a, b, id_col = id_col)
     ajb = ac.join(bc, 
         how="inner",
         left_on=id_col + suffix_a,
@@ -358,7 +360,10 @@ def bitdiff(
 
     ajb = ajb.with_columns(
         pl.struct(pl.all())
-        .map_elements(compute_bitarray, return_dtype=pl.UInt64)
+        .map_elements(
+            partial(compute_bitarray, id_col=id_col), 
+            return_dtype=pl.UInt64
+        )
         .alias("diff_bitarray")
     ).select(pl.col(id_col + suffix_a).alias(id_col), bitarray_col_name)
     return ajb
@@ -367,6 +372,7 @@ def bitdiff_summary(
     a: pl.DataFrame | pl.LazyFrame | str | Path,
     b: pl.DataFrame | pl.LazyFrame | str | Path,
     bitdiff_df: pl.DataFrame | str | Path,
+    id_col: str = 'record_id',
     bitarray_col_name: str = 'diff_bitarray') -> pl.DataFrame:
     """
     Computes the bitdiff summary, given the bitdiff dataframe and the core column.
@@ -388,7 +394,7 @@ def bitdiff_summary(
     bitdiff_date = max(bitdiff_df.select('date_diffed').to_series())
     print(bitdiff_date) # DEBUG PRINT
     # Assume we have our bitdiff results from o, m...
-    core_cols = get_core_columns(a, b)
+    core_cols = get_core_columns(a, b, id_col=id_col)
     bitarrays = bitdiff_df.select(bitarray_col_name).to_series()
     # print(len(bitarrays)) # DEBUG PRINT
 
