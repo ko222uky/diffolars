@@ -386,7 +386,7 @@ wheels = [
 
 [[package]]
 name = "diffolars"
-version = "1.0.3"
+version = "1.0.4"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

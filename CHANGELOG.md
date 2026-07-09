@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.4
+- Fixed `report_prune`, `bitdiff`, and `bitdiff_summary` not forwarding a
+  custom `id_col` down to `row_symmetric_diff`, `get_core`, and
+  `get_core_columns`, so non-default primary key column names are now
+  respected throughout the diff pipeline instead of silently falling back to
+  `record_id`
+- Fixed `get_core` not forwarding `id_col` to `column_intercept`
+- Renamed `column_intercept`'s `record_id_col` parameter to `id_col` for
+  consistency with the rest of the API
+- Updated `diff_cli` to pass `id_col` through to `report_prune` and
+  `bitdiff_summary`
+
 ## 1.0.3
 - Fixed `get_df_pair` not forwarding `seed` to `get_mutated_data`, so the
   mutated frame is now reproducible alongside the original when a seed is given
