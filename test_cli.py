@@ -82,14 +82,19 @@ def test_diff_cli_succeeds_with_default_id_col(tmp_path):
 def test_diff_cli_succeeds_with_non_default_id_col(tmp_path):
     """diff_cli should run without error when given a custom --id-col.
 
-    This is the top-level, no-mocking version of the bug: it exercises the
-    real pipeline end to end, so it will keep failing at whichever layer is
-    still broken. As of this writing that's `get_core` (diff.py) not
-    forwarding `id_col` on to `column_intercept`'s `record_id_col`
-    parameter, so it EXPECTED TO FAIL with
-    `polars.exceptions.ColumnNotFoundError: unable to find column "uid_A"`.
-    See `test_diff_cli_bitdiff_respects_id_col` for the isolated repro of
-    that specific bug.
+    EXPECTED TO FAIL with `polars.exceptions.ColumnNotFoundError: unable to
+    find column "record_id"` since this bug was found during a real-world work scenario.
+
+    Root cause: `diffolars.diff.report_prune` (called at cli.py's
+    `report_prune(o, m)` line, before pruned_rows/bitdiff even run) has no
+    `id_col` parameter at all;
+     
+    rather, it hardcodes 'record_id' via
+    `row_symmetric_diff(a, b)`. 
+    
+    Needs fixing: give `report_prune` an
+    `id_col` parameter (forwarded to `row_symmetric_diff`), and have
+    `diff_cli` pass its `id_col` option through to `report_prune`.
     """
     prev_path, latest_path = _write_pair(tmp_path, "uid")
 

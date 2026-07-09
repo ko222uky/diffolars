@@ -192,7 +192,7 @@ def get_core(
     try:
         # columns pruned via column intercept
         # here, we're just preparing an ordered list for our select expression...
-        ci = column_intercept(a, b)
+        ci = column_intercept(a, b, id_col=id_col)
         ci.remove(id_col)
         ci = list(ci)
         ci = sorted(ci, key=col_sort_key)
@@ -269,7 +269,7 @@ def column_intercept(
     acol: list[str] | pl.DataFrame | pl.LazyFrame, 
     bcol: list[str] | pl.DataFrame | pl.LazyFrame, 
     acol_suffix: str = '', bcol_suffix: str = '',
-    record_id_col: str = 'record_id') -> set[str]:
+    id_col: str = 'record_id') -> set[str]:
     """
     Finds and returns the set of shared columns between two input dataframes.
     Equal columns must have the same column name and data type, excluding the suffix.
@@ -279,7 +279,7 @@ def column_intercept(
     o = {c.replace(acol_suffix, '') for c in acol}
     m = {c.replace(bcol_suffix, '') for c in bcol}
     i = o.intersection(m)
-    if record_id_col not in i:
+    if id_col not in i:
         raise ValueError("Could not find record ID column (primary key).")
     return i
 

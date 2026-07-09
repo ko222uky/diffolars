@@ -132,7 +132,8 @@ def diff_cli(
         summary_df = bitdiff_summary(
             a = o,
             b = m,
-            bitdiff_df = bitdiff_df
+            bitdiff_df = bitdiff_df,
+            id_col=id_col
         )
         click.echo("Summary for the bitarray")
         click.echo(summary_df)
@@ -195,7 +196,8 @@ def diff_cli(
                     summary_df = bitdiff_summary(
                         a = opath,
                         b = mpath,
-                        bitdiff_df = bitdiff_df_path
+                        bitdiff_df = bitdiff_df_path,
+                        id_col = id_col
                     )
                     summary_df_path = data_path / 'bitarray_summary.parquet'
                     summary_df.write_parquet(summary_df_path)
