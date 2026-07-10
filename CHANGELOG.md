@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.7
+- Removed unused `pandas`, `pyodbc`, `ipykernel`, `jupyter`, and `dotenv`
+  dependencies, none of which are referenced anywhere in `src/`
+
+## 1.0.6
+- Renamed `demo.DEMO_COL_SORT_KEY` (a lambda) to `demo._demo_col_sort_key`,
+  a plain function with a docstring, for readability
+
 ## 1.0.5
 - Changed `get_core`/`get_core_columns`'s default `col_sort_key` from
   `lambda x: int(x.split('_')[1])` to `lambda x: x` (identity), since the
