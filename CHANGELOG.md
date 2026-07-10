@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.5
+- Changed `get_core`/`get_core_columns`'s default `col_sort_key` from
+  `lambda x: int(x.split('_')[1])` to `lambda x: x` (identity), since the
+  former only worked for column names following the `demo.py`-generated
+  naming pattern and broke the CLI pipeline on other column names
+- Added `demo.DEMO_COL_SORT_KEY`, exposing the old
+  `int(x.split('_')[1])` sort key for callers working with `demo.py`-style
+  synthetic column names
+
 ## 1.0.4
 - Fixed `report_prune`, `bitdiff`, and `bitdiff_summary` not forwarding a
   custom `id_col` down to `row_symmetric_diff`, `get_core`, and

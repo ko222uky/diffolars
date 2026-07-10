@@ -12,7 +12,14 @@ from datetime import datetime, timedelta
 import polars as pl
 from typing import Any
 
-DEMO_COL_SORT_KEY = lambda x: int(x.split('_')[1])
+
+def _demo_col_sort_key(x: str) -> int:
+    """
+    Function definition equivalent to
+
+    `lambda x: int(x.split('_')[1])`
+    """
+    return int(x.split('_')[1])
 
 # The default include types;
 # the randomized data is guaranteed to include a column 
