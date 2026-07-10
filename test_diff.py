@@ -12,7 +12,7 @@ from diffolars.diff import (
     count_zero_bits,
     get_row_list,
     row2num_bits,
-    compute_bitarray,
+    compute_bitarray64,
     count_bitarrays,
     column_intercept,
     column_symmetric_diff,
@@ -75,7 +75,7 @@ def test_row2num_bits_counts_column_pairs():
     row = {"a": 1, "b": 2, "c": 3, "d": 4, "record_id_A": "x", "record_id_B": "x"}
     assert row2num_bits(row) == 2
 
-def test_compute_bitarray_sets_bit_when_values_match():
+def test_compute_bitarray64_sets_bit_when_values_match():
     """A bit should be set when the A/B values at that position are equal."""
     row = {
         "col_0_int_A": 5, "col_1_str_A": "foo",
@@ -83,7 +83,7 @@ def test_compute_bitarray_sets_bit_when_values_match():
         "record_id_A": "x", "record_id_B": "x",
     }
     # col_0 matches (bit 0 set), col_1 differs (bit 1 unset) -> 0b01
-    assert compute_bitarray(row) == 0b01
+    assert compute_bitarray64(row) == 0b01
 
 def test_count_bitarrays_counts_flipped_bits_at_position():
     """count_bitarrays should count how many bitarrays have a given bit set."""

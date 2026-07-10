@@ -61,7 +61,10 @@ Inputs to these functions can be a `list`, `polars.DataFrame`, or
   field-to-field comparison
 - `bitdiff` — joins the two core tables and computes a per-row `diff_bitarray`
   (`pl.UInt64`), with each bit flagging whether a given column matched
-  between the previous and latest load
+  between the previous and latest load. Since each row's diff is packed into
+  a single 64-bit integer, **the core tables can have at most 64 non-ID
+  columns**; `compute_bitarray64` (the per-row helper `bitdiff` calls)
+  raises a `ValueError` if that limit is exceeded
 - `bitdiff_summary` — reads back a `bitdiff` result and reports, per core
   column, how many rows were modified vs. not modified
 - `bitarray_upset_plot` / `bitdiff_plot` — builds an upset plot (matplotlib)

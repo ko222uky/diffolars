@@ -64,18 +64,22 @@ def row2num_bits(row: dict, id_col = 'record_id'):
     """The number of bits needed for a given row."""
     return len(get_row_list(row, id_col)) // 2
 
-def compute_bitarray(row: dict, id_col = 'record_id') -> int:
-    """Computes the column 64-bit diff bitarray in little-endian order."""
-    
+def compute_bitarray64(row: dict, id_col = 'record_id') -> int:
+    """Computes the column 64-bit diff bitarray in little-endian order.
+
+    Hard-capped at 64 column pairs, since the result is packed into a
+    single 64-bit integer (`pl.UInt64` once stored in a DataFrame).
+    """
+
     # Main bit array loop. We know that row_list MUST be even.
     row_list = get_row_list(row, id_col)
     bitarray = 0
     offset = len(row_list) // 2
 
-    if offset > 32:
-        raise ValueError(f"The row cannot have more than 32 column pairs. \
+    if offset > 64:
+        raise ValueError(f"The row cannot have more than 64 column pairs. \
                         Computed offset is {offset}. \
-                        Expected a value <= 32.")
+                        Expected a value <= 64.")
 
     for i in range(len(row_list)):
         if i+offset >= len(row_list):
@@ -362,7 +366,7 @@ def bitdiff(
     ajb = ajb.with_columns(
         pl.struct(pl.all())
         .map_elements(
-            partial(compute_bitarray, id_col=id_col), 
+            partial(compute_bitarray64, id_col=id_col),
             return_dtype=pl.UInt64
         )
         .alias("diff_bitarray")
@@ -478,7 +482,7 @@ def bitarray_upset_plot(
     Builds an upset plot showing which columns tend to be modified together.
 
     `bitarrays` is an iterable of little-endian diff bitarrays as produced by
-    `compute_bitarray`: a 0 bit at position i means the column named
+    `compute_bitarray64`: a 0 bit at position i means the column named
     `categories[i]` differs between the compared rows (i.e. was modified).
     `categories` must be ordered so that index i lines up with bit i.
 
