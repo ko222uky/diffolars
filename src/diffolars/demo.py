@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 import polars as pl
 from typing import Any
 
+DEMO_COL_SORT_KEY = lambda x: int(x.split('_')[1])
+
 # The default include types;
 # the randomized data is guaranteed to include a column 
 # with these data types. Note that the data types require

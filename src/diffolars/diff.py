@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from pathlib import Path
 from functools import partial
+
 ########################################################
 #                   BITARRAY HELPER FUNCTIONS
 ########################################################
@@ -181,7 +182,7 @@ def get_core(
     a: pl.DataFrame | pl.LazyFrame,
     b: pl.DataFrame | pl.LazyFrame,
     id_col: str = 'record_id',
-    col_sort_key = lambda x: int(x.split('_')[1])) -> tuple[pl.DataFrame, pl.DataFrame]:
+    col_sort_key = lambda x: x) -> tuple[pl.DataFrame, pl.DataFrame]:
     """Returns the core table, given two input data tables.
     
     The core table is what remains after pruning the rows and columns
@@ -231,7 +232,7 @@ def get_core_columns(
     a: pl.DataFrame | pl.LazyFrame,
     b: pl.DataFrame | pl.LazyFrame,
     id_col: str = 'record_id',
-    col_sort_key = lambda x: int(x.split('_')[1])) -> list:
+    col_sort_key = lambda x: x) -> list:
     """
     Returns the core columns, given two dataframes, excluding the record id column.
     """
