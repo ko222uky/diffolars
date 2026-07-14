@@ -1,3 +1,5 @@
+# CI Pipeline for GitLab.
+
 # Source: https://docs.astral.sh/uv/guides/integration/gitlab/#using-uv-pip
 image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
@@ -29,7 +31,8 @@ lint_job:
 test:
   stage: test
   script:
-    - uv run pytest --junitxml=report.xml
+    - uv run coverage run -m pytest --junitxml=report.xml
+    - uv run coverage report -m
 
   artifacts:
       when: always

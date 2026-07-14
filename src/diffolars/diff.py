@@ -39,7 +39,12 @@ def brian_kernighan(bitarray: int) -> int:
     return count
 
 def get_row_list(row: dict, id_col = 'record_id') -> list:
-    """Prepares the row list for bit array computations"""
+    """Prepares the row list for bit array computations.
+    
+    Assumes the `_A` and `_B` suffixes applied by `get_core`."""
+
+    id_cols = set([id_col + '_A', id_col + '_B'])
+
     # prepare lists for indexing. 
     # row_list has the non-ID column values
     row_list = [v for k, v in row.items() if id_col not in k]
@@ -49,7 +54,7 @@ def get_row_list(row: dict, id_col = 'record_id') -> list:
                         so that the binary operations are correct.")
 
     # we use the id list to check if the input is correct
-    id_list = [v for k, v in row.items() if id_col in k]
+    id_list = [v for k, v in row.items() if k in id_cols]
 
     if len(id_list) != 2:
         raise ValueError(f"Only two columns should have {id_col} in its name.")
@@ -189,7 +194,9 @@ def get_core(
     col_sort_key = lambda x: x) -> tuple[pl.DataFrame, pl.DataFrame]:
     """Returns the core table, given two input data tables.
     
-    The core table is what remains after pruning the rows and columns
+    The core table is what remains after pruning the rows and columns.
+
+    Columns are distinguished by suffixes `_A` and `_B`.
     """
     a_df = a if isinstance(a, pl.DataFrame) else a.collect()
     b_df = b if isinstance(b, pl.DataFrame) else b.collect() 

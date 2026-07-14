@@ -10,6 +10,8 @@ all, or accept one but never forward it to the helpers they call internally.
 Each failing test isolates one layer of that call chain (using monkeypatching
 to bypass bugs in earlier layers, where needed) so the failures can be
 attributed to a specific function.
+
+Additional tests also added as edge cases are discovered for `diff_cli`.
 """
 
 from datetime import datetime
@@ -55,6 +57,24 @@ def _write_pair(tmp_path, id_col):
     b.write_parquet(latest_path)
     return prev_path, latest_path
 
+def _write_pair_id_substring(tmp_path, id_col):
+    """Writes a data pair wherein the ID col shares a substring with a non-ID col"""
+    a = pl.DataFrame({
+        id_col: ["r1", "r2", "r3"],
+        'other_' + id_col: [1, 2, 3],
+        "col_1_str": ["x", "y", "z"],
+    })
+    b = pl.DataFrame({
+        id_col: ["r1", "r2", "r3"],
+        'other_' + id_col: [1, 99, 3],
+        "col_1_str": ["x", "y", "q"],
+    })
+    prev_path = tmp_path / "prev.parquet"
+    latest_path = tmp_path / "latest.parquet"
+    a.write_parquet(prev_path)
+    b.write_parquet(latest_path)
+    return prev_path, latest_path
+
 
 def test_diff_cli_succeeds_with_default_id_col(tmp_path):
     """Sanity check: the CLI runs end-to-end when the id column is 'record_id'.
@@ -77,6 +97,23 @@ def test_diff_cli_succeeds_with_default_id_col(tmp_path):
         ],
         standalone_mode=False,
     )
+
+def test_diff_cli_id_col_substring(tmp_path):
+    """Tests edge case of having columns sharing substrings with ID col"""
+    prev_path, latest_path = _write_pair_id_substring(tmp_path, "record_id")
+    # Note: This is calling the CLI tool inline
+    diff_cli(
+        [
+            "--no-scan",
+            "--no-write",
+            "--no-bitarray-summary",
+            "--prev-load", str(prev_path),
+            "--latest-load", str(latest_path),
+            "--id-col", "record_id",
+        ],
+        standalone_mode=False,
+    )
+
 
 
 def test_diff_cli_succeeds_with_non_default_id_col(tmp_path):
@@ -178,6 +215,7 @@ def test_diff_cli_bitdiff_summary_respects_id_col(tmp_path, monkeypatch, capsys)
     monkeypatch.setattr(cli_module, "report_prune", _stub_report_prune)
 
     def fake_bitdiff(o, m, id_col="record_id", **kwargs):
+        """Monkey patch for `bitdiff` call in `diff_cli`, returning fake `bitdiff_df`"""
         return pl.DataFrame({
             id_col: ["r1", "r2", "r3"],
             "diff_bitarray": [0b11, 0b10, 0b01],

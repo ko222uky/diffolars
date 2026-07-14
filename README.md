@@ -128,6 +128,16 @@ changes with:
 uv run --group dev pdoc diffolars -o docs
 ```
 
+# Testing
+
+Tests performed with `pytest` and `coverage`:
+
+```
+ uv run coverage run -m pytest --junitxml=report.xml ;
+ uv run coverage html
+
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
