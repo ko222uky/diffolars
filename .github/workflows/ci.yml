@@ -27,11 +27,13 @@ jobs:
           enable-cache: true
       - run: uv run --group dev coverage run -m pytest --junitxml=report.xml
       - run: uv run --group dev coverage html
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: report
           path: report.xml
+          
       - uses: actions/upload-artifact@v4
         if: always()
         with:

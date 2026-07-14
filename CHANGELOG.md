@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.9
+- Fixed `get_row_list` misclassifying non-ID columns as ID columns whenever
+  their name merely contained `id_col` as a substring (e.g. an
+  `other_record_id_A` column alongside `record_id`), which raised a spurious
+  `ValueError` about having more than two ID columns; `id_list` is now
+  matched against the exact `{id_col}_A`/`{id_col}_B` column names instead of
+  substring containment
+- Added `test_diff_cli_id_col_substring` (`test_cli.py`), covering a table
+  pair with a shared column whose name contains the ID column's name as a
+  substring
+
 ## 1.0.7
 - Removed unused `pandas`, `pyodbc`, `ipykernel`, `jupyter`, and `dotenv`
   dependencies, none of which are referenced anywhere in `src/`
