@@ -291,8 +291,10 @@ def column_intercept(
     o = {c.replace(acol_suffix, '') for c in acol}
     m = {c.replace(bcol_suffix, '') for c in bcol}
     i = o.intersection(m)
+
     if id_col not in i:
         raise ValueError("Could not find record ID column (primary key).")
+    
     return i
 
 def column_symmetric_diff(
@@ -529,6 +531,7 @@ def bitarray_upset_plot(
         combo_counts[combo] += 1
 
     combo_counts.pop(empty_combo, None)
+    
     if not combo_counts:
         raise ValueError("No modified columns were found across the given bitarrays.")
 
