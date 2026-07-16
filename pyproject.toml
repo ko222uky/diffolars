@@ -1,12 +1,13 @@
 [project]
 name = "diffolars"
-version = "1.0.9"
+version = "1.1.0"
 description = "A small Polars-based toolkit for comparing two versions of a dataframe and generating randomized test data to exercise that comparison."
 readme = "README.md"
 authors = [
     { name = "Kenneth O'Dell", email = "kenneth.l.odell@gmail.com" }
 ]
-license = "MIT"
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
 requires-python = ">=3.13"
 dependencies = [
     "click>=8.4.2",

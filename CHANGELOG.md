@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+- Relicensed from MIT-only to a dual MIT/Apache-2.0 license; `LICENSE` is now
+  split into `LICENSE-MIT` and `LICENSE-APACHE`, and `pyproject.toml`'s
+  `license` field is now the SPDX expression `MIT OR Apache-2.0`
+
 ## 1.0.9
 - Fixed `get_row_list` misclassifying non-ID columns as ID columns whenever
   their name merely contained `id_col` as a substring (e.g. an
