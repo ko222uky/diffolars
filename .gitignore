@@ -14,8 +14,10 @@ deliverables/
 .venv
 *.env
 
+
 # generated data
 *.parquet
 *.csv
 data/
 
+*.coverage
