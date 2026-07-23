@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.2
+- Fixed the CLI command's call to `bitdiff_plot` to properly pass the `id_col`
+  to the plotting functions
+- Fixed plotting functions to properly pass the `id_col` to `get_core_columns`
+
+## 1.1.1
+- Added `test_diff_cli_upset_plot_creation_respects_id_col` (`test_cli.py`),
+  testing creation of the upset plot when the id column is a non-default value
+
 ## 1.1.0
 - Relicensed from MIT-only to a dual MIT/Apache-2.0 license; `LICENSE` is now
   split into `LICENSE-MIT` and `LICENSE-APACHE`, and `pyproject.toml`'s

@@ -211,6 +211,7 @@ def diff_cli(
                     upset_plot = bitdiff_plot(
                         a = opath,
                         b = mpath,
+                        id_col=id_col,
                         bitdiff_df = bitdiff_df_path,
                         top_n = top_n
                     )

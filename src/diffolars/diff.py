@@ -440,6 +440,7 @@ def bitdiff_plot(
     b: pl.DataFrame | pl.LazyFrame | str | Path,
     bitdiff_df: pl.DataFrame | str | Path,
     *,
+    id_col: str = 'record_id',
     bitarray_col_name: str = 'diff_bitarray', **kwargs) -> Figure:
 
     if isinstance(a, str) or isinstance(a, Path):
@@ -452,7 +453,7 @@ def bitdiff_plot(
         print("Reading bitdiff results from parquet path...")
         bitdiff_df = pl.read_parquet(bitdiff_df)
 
-    core_cols = get_core_columns(a, b)
+    core_cols = get_core_columns(a, b, id_col=id_col)
     bitarrays = bitdiff_df.select(bitarray_col_name).to_series()
 
     fig = bitarray_upset_plot(bitarrays=bitarrays, categories=core_cols, **kwargs)
