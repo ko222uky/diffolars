@@ -14,13 +14,14 @@ attributed to a specific function.
 Additional tests also added as edge cases are discovered for `diff_cli`.
 """
 
-from datetime import datetime
+from datetime import datetime, date
 
 import polars as pl
-
+import os
+from pathlib import Path
 import diffolars.cli as cli_module
 from diffolars.cli import diff_cli
-
+import shutil
 
 def _stub_report_prune(a, b, id_col="record_id"):
     """Stand-in for `report_prune` used to bypass its bug in other tests.
@@ -240,3 +241,48 @@ def test_diff_cli_bitdiff_summary_respects_id_col(tmp_path, monkeypatch, capsys)
     assert "shape: (2, 4)" in captured.out
     assert "col_0_int" in captured.out
     assert "col_1_str" in captured.out
+
+
+def test_diff_cli_upset_plot_creation_respects_id_col(tmp_path, monkeypatch, capsys):
+    """
+    The diff cli should create the upset plot when the id column is not the default.
+    The test data is created in `data/prev-latest` and is cleaned before asserting
+    file existence.
+    """
+    monkeypatch.setattr(cli_module, "report_prune", _stub_report_prune)
+
+    def fake_bitdiff(o, m, id_col="record_id", **kwargs):
+        """Monkey patch for `bitdiff` call in `diff_cli`, returning fake `bitdiff_df`"""
+        return pl.DataFrame({
+            id_col: ["r1", "r2", "r3"],
+            "diff_bitarray": [0b11, 0b10, 0b01],
+        })
+
+    monkeypatch.setattr(cli_module, "bitdiff", fake_bitdiff)
+    prev_path, latest_path = _write_pair(tmp_path, "uid")
+
+    data_path = Path('data', 'prev-latest', str(date.today()))
+    upset_plot_path = data_path / 'bitarray_summary_upsetplot.png'  
+
+    if os.path.exists(data_path):
+        print("Cleaning old test path.")
+        shutil.rmtree(data_path)
+
+    diff_cli(
+        [
+            "--no-scan",
+            "--write",
+            "--bitarray-summary",
+            "--prev-load", str(prev_path),
+            "--latest-load", str(latest_path),
+            "--id-col", "uid",
+        ],
+        standalone_mode=False,
+    )
+
+    assert os.path.exists(upset_plot_path)
+
+    
+    
+
+

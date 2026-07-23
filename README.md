@@ -138,6 +138,8 @@ Tests performed with `pytest` and `coverage`:
 
 ```
 
+Test result data is created in `data/prev-latest`.
+
 ## License
 
 Dual-licensed under either of
